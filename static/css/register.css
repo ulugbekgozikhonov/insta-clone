@@ -1,0 +1,106 @@
+* {
+  box-sizing: border-box;
+  font-family: Arial, sans-serif;
+}
+
+body {
+  background-color: #fafafa;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  margin: 0;
+}
+
+.signup-container {
+  background-color: #fff;
+  width: 360px;
+  padding: 40px 30px;
+  border: 1px solid #dbdbdb;
+  border-radius: 8px;
+  text-align: center;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+}
+
+.signup-container img {
+  width: 180px;
+  margin-bottom: 15px;
+}
+
+.signup-container p {
+  font-size: 14px;
+  color: #8e8e8e;
+  margin-bottom: 10px;
+  line-height: 1.5;
+}
+
+.signup-container a {
+  color: #00376b;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.signup-container a:hover {
+  text-decoration: underline;
+}
+
+.signup-container button {
+  width: 100%;
+  padding: 10px;
+  background-color: #0095f6;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  margin-bottom: 10px;
+}
+
+.signup-container button:hover {
+  background-color: #007bd6;
+}
+
+.signup-container button.fb {
+  background-color: #1877f2;
+  margin-top: 10px;
+}
+
+.signup-container input {
+  width: 100%;
+  padding: 12px;
+  margin: 8px 0;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  font-size: 14px;
+  background-color: #fafafa;
+}
+
+.signup-container input:focus {
+  outline: none;
+  border-color: #a1a1a1;
+}
+
+.signup-container hr {
+  border: none;
+  border-top: 1px solid #dbdbdb;
+  margin: 15px 0;
+}
+
+.terms {
+  font-size: 11px;
+  color: #8e8e8e;
+  margin-top: 10px;
+}
+
+.bottom-text {
+  margin-top: 15px;
+  font-size: 14px;
+}
+
+@media (max-width: 400px) {
+  .signup-container {
+    width: 90%;
+    padding: 30px 20px;
+  }
+}

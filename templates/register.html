@@ -1,0 +1,39 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Instagram • Sign Up</title>
+  <link rel="stylesheet" href="{% static 'css/register.css' %}">
+</head>
+<body>
+  <div class="signup-container">
+    <img src="https://th.bing.com/th/id/R.0dec417928863d43f88a01ec70a89eaf?rik=gm9jqqylRdO2tQ&pid=ImgRaw&r=0" alt="Instagram Logo">
+    <p><strong>Sign up</strong> to see photos and videos from your friends.</p>
+    <button class="fb">Log in with Facebook</button>
+    <hr><p style="margin: 0; font-size: 13px; color: #999;">OR</p><hr>
+
+    <form method="post">
+      {% csrf_token %}
+      {% if error_email %}
+        <ul><li style="color: red;">{{ error_email }}</li></ul>
+      {% endif %}
+      <input type="text" name="email_or_phone" placeholder="Mobile number or email" required>
+      <input type="text" name="full_name" placeholder="Full Name" required>
+      {% if error_username %}
+        <ul><li style="color: red;">{{ error_username }}</li></ul>
+      {% endif %}
+      <input type="text" name="username" placeholder="Username" required>
+      <input type="password" name="password" placeholder="Password" required>
+      <p class="terms">
+        By signing up, you agree to our <a href="#">Terms</a>, <a href="#">Privacy Policy</a> and <a href="#">Cookies Policy</a>.
+      </p>
+      <button type="submit">Sign Up</button>
+    </form>
+
+    <hr>
+    <p class="bottom-text">Have an account? <a href="{% url 'login' %}">Log in</a></p>
+  </div>
+</body>
+</html>
