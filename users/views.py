@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect
 from django.views import View
 from django.contrib.auth import login, authenticate, logout
-from .models import User
+from .models import User, UserFollowers
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 
@@ -53,4 +53,27 @@ def logout_view(request):
 class ProfileView(LoginRequiredMixin,View):
     def get(self,request, username):
         user = User.objects.get(username=username)
-        return render(request,"profile.html", {"user": user})
+        is_following = UserFollowers.objects.filter(
+        user=request.user,
+        follower=user,
+        deleted=False
+    ).exists()
+        
+        context = {
+        'user': user,
+        'is_following': is_following
+    }
+        return render(request, 'profile.html', context)
+
+class FollowView(LoginRequiredMixin, View):
+    def get(self, request, username):
+        user = User.objects.filter(username=username).first()
+        if user != request.user:
+           relation = UserFollowers.objects.filter(user=request.user, follower=user).first()
+        if relation:
+            relation.deleted = not relation.deleted
+            relation.save()
+        else:
+            UserFollowers.objects.create(user=request.user, follower=user)
+
+        return redirect(request.META.get('HTTP_REFERER', '/'))

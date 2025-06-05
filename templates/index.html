@@ -198,6 +198,20 @@
       .add-comment:focus {
         background-color: #333;
       }
+
+      .like-btn {
+        width: 28px;
+        height: 28px;
+        user-select: none;
+      }
+
+      .like-btn.unliked {
+        filter: brightness(0) invert(1); /* oq yurak */
+      }
+
+      .like-btn.liked {
+        filter: none; /* qizil yurak */
+      }
     </style>
   </head>
   <body>
@@ -215,17 +229,16 @@
       {% for post in posts %}
       <div class="post">
         <div class="post-header">
-          <img
-            src="{{ post.user.photo.url }}"
-            alt="user avatar image"
-          />
-          <div class="username"><a href="{% url 'profile' post.user.username %}">{{ post.user.username }}</a> • {{ post.get_time_since_created }}</div>
+          <img src="{{ post.user.photo.url }}" alt="user avatar image" />
+          <div class="username">
+            <a href="{% url 'profile' post.user.username %}"
+              >{{ post.user.username }}</a
+            >
+            • {{ post.get_time_since_created }}
+          </div>
         </div>
         <div class="post-image">
-          <img
-            src="{{ post.content.url }}"
-            alt="Post image"
-          />
+          <img src="{{ post.content.url }}" alt="Post image" />
         </div>
         <div class="post-actions">
           <a
@@ -245,9 +258,7 @@
           </a>
         </div>
         <div class="post-likes" aria-live="polite">210 likes</div>
-        <div class="post-caption">
-          {{ post.description|linebreaksbr }}
-        </div>
+        <div class="post-caption">{{ post.description|linebreaksbr }}</div>
         <a href="#" class="view-comments">View all comments</a>
         <input
           type="text"
@@ -270,11 +281,13 @@
             if (liked) {
               this.src = "{% static 'img/heart.png' %}";
               this.setAttribute("data-liked", "false");
-              this.parentElement.setAttribute("aria-pressed", "false");
+              this.classList.remove("liked");
+              this.classList.add("unliked");
             } else {
               this.src = "{% static 'img/heart_r.png' %}";
               this.setAttribute("data-liked", "true");
-              this.parentElement.setAttribute("aria-pressed", "true");
+              this.classList.remove("unliked");
+              this.classList.add("liked");
             }
           });
         });
