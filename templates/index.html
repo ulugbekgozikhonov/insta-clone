@@ -1,3 +1,4 @@
+{% load like_tags %}
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
@@ -199,19 +200,7 @@
         background-color: #333;
       }
 
-      .like-btn {
-        width: 28px;
-        height: 28px;
-        user-select: none;
-      }
-
-      .like-btn.unliked {
-        filter: brightness(0) invert(1); /* oq yurak */
-      }
-
-      .like-btn.liked {
-        filter: none; /* qizil yurak */
-      }
+     
     </style>
   </head>
   <body>
@@ -242,22 +231,28 @@
         </div>
         <div class="post-actions">
           <a
-            href="javascript:void(0);"
-            aria-pressed="false"
-            aria-label="Like button"
+            href="{% url 'post-like' post.id %}"
+
+          {% is_liked post user as liked %}
           >
+          {% if liked  %}
             <img
-              class="like-btn"
-              data-liked="false"
-              src="{% static 'img/heart.png' %}"
+              src="{% static 'img/heart_r.png' %}"
               alt="like icon"
             />
+          {% else %}
+            <img
+              src="{% static 'img/heart.png' %}"
+              alt="unliked icon"
+            />
+          {% endif %}
           </a>
           <a href="#" aria-label="Comment button">
             <img src="{% static 'img/comment.svg' %}" alt="comment icon" />
           </a>
         </div>
-        <div class="post-likes" aria-live="polite">210 likes</div>
+
+        <div class="post-likes" aria-live="polite">{{ post.likes_count }} likes</div>
         <div class="post-caption">{{ post.description|linebreaksbr }}</div>
         <a href="#" class="view-comments">View all comments</a>
         <input
@@ -270,28 +265,5 @@
       {% endfor %}
     </div>
 
-    <script>
-      document.addEventListener("DOMContentLoaded", function () {
-        const likeButtons = document.querySelectorAll(".like-btn");
-
-        likeButtons.forEach((button) => {
-          button.addEventListener("click", function () {
-            const liked = this.getAttribute("data-liked") === "true";
-
-            if (liked) {
-              this.src = "{% static 'img/heart.png' %}";
-              this.setAttribute("data-liked", "false");
-              this.classList.remove("liked");
-              this.classList.add("unliked");
-            } else {
-              this.src = "{% static 'img/heart_r.png' %}";
-              this.setAttribute("data-liked", "true");
-              this.classList.remove("unliked");
-              this.classList.add("liked");
-            }
-          });
-        });
-      });
-    </script>
   </body>
 </html>

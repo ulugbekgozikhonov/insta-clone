@@ -20,7 +20,13 @@ class User(AbstractUser, BaseModel):
     def is_following(self, other_user):
         return self.following.filter(user=other_user).exists()
         
-    
+
+    def get_followers_count(self):
+        return self.followers.filter(deleted=False).count()
+
+    def get_following_count(self):
+        return self.following.filter(deleted=False).count()
+
 
 class UserFollowers(BaseModel):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="following")
@@ -32,3 +38,5 @@ class UserFollowers(BaseModel):
 
     def __str__(self):
         return f"{self.user.username} - {self.follower.username}"
+
+

@@ -311,8 +311,8 @@
 
           <div class="stats">
             <span><strong>{{ user.posts.count }}</strong> posts</span>
-            <span><strong>{{ user.followers.count }}</strong> followers</span>
-            <span><strong>{{ user.following.count }}</strong> following</span>
+            <span><strong>{{ user.get_followers_count }}</strong> followers</span>
+            <span><strong>{{ user.get_following_count }}</strong> following</span>
           </div>
 
           <div class="bio">

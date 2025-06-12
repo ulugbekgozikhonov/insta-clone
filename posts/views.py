@@ -29,3 +29,16 @@ class AddpostView(LoginRequiredMixin,View):
             return render(request, 'add_post.html', {"error": e})
         
         return redirect('post-list')
+    
+class PostLikeView(LoginRequiredMixin, View):
+    def get(self, request, pk):
+        post = Post.objects.get(pk=pk)
+        post_like = post.likes.filter(post=post, user=request.user).first()
+        if post_like:
+            post_like.deleted = not post_like.deleted
+            post_like.save()
+        else:
+            post.likes.create(user=request.user)
+            
+        return redirect('post-list')
+    

@@ -22,8 +22,26 @@ class Post(BaseModel):
     def get_time_since_created(self):
         return timesince(self.created_at, now())
     
+    @property
+    def likes_count(self):
+        return self.likes.filter(deleted=False).count()
+    
     class Meta:
         verbose_name = "Post"
         verbose_name_plural = "Posts"
         ordering = ['-created_at']
-        
+
+class PostLike(BaseModel):
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='likes')
+    user = models.ForeignKey('users.User', on_delete=models.CASCADE, related_name='liked_posts')
+    deleted = models.BooleanField(default=False)
+
+    class Meta:
+        unique_together = ('post', 'user')
+        verbose_name = "Post Like"
+        verbose_name_plural = "Post Likes"
+
+
+    def __str__(self):
+        return f"{self.user.username} liked {self.post.title}"
+    
