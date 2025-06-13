@@ -70,13 +70,14 @@
         border-radius: 14px;
         max-width: 500px;
         width: 100%;
-        height: 680px;
+        /* height adjusted for content growth */
         box-shadow: 0 4px 12px rgba(10, 10, 10, 0.7);
         overflow: hidden;
         display: flex;
         flex-direction: column;
         color: #fff;
         font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        margin-bottom: 48px;
       }
 
       .post-header {
@@ -106,6 +107,7 @@
       .post-image {
         flex: 1 1 auto;
         overflow: hidden;
+        max-height: 500px;
       }
 
       .post-image img {
@@ -200,12 +202,62 @@
         background-color: #333;
       }
 
-     
+      /* Comments container */
+      .post-comments {
+        padding: 0 20px 10px;
+        max-height: 160px;
+        overflow-y: auto;
+        border-top: 1px solid #222;
+        margin-top: 8px;
+        flex-shrink: 0;
+      }
+
+      .post-comments .comment {
+        margin-bottom: 8px;
+        font-size: 13px;
+        color: #ddd;
+      }
+
+      .post-comments .comment strong {
+        color: #0af;
+        margin-right: 6px;
+      }
+
+      /* Scrollbar styling for comments */
+      .post-comments::-webkit-scrollbar {
+        width: 6px;
+      }
+      .post-comments::-webkit-scrollbar-track {
+        background: #121212;
+      }
+      .post-comments::-webkit-scrollbar-thumb {
+        background-color: #0af;
+        border-radius: 3px;
+      }
+
+      /* Button for comment submit */
+      .comment-submit-btn {
+        background-color: #0af;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 20px;
+        color: #fff;
+        cursor: pointer;
+        font-weight: 600;
+        margin: 0 20px 20px;
+        align-self: flex-start;
+        transition: background-color 0.3s ease;
+      }
+
+      .comment-submit-btn:hover {
+        background-color: #08acda;
+      }
+
     </style>
   </head>
   <body>
     <div class="sidebar">
-      <img src="{% static 'img/logo.png' %}" alt="" />
+      <img src="{% static 'img/logo.png' %}" alt="Instagram Logo" />
       <a href="{% url 'post-list' %}">🏠 Home</a>
       <a href="#">🔍 Search</a>
       <a href="#">🧭 Explore</a>
@@ -220,9 +272,7 @@
         <div class="post-header">
           <img src="{{ post.user.photo.url }}" alt="user avatar image" />
           <div class="username">
-            <a href="{% url 'profile' post.user.username %}"
-              >{{ post.user.username }}</a
-            >
+            <a href="{% url 'profile' post.user.username %}">{{ post.user.username }}</a>
             • {{ post.get_time_since_created }}
           </div>
         </div>
@@ -230,22 +280,13 @@
           <img src="{{ post.content.url }}" alt="Post image" />
         </div>
         <div class="post-actions">
-          <a
-            href="{% url 'post-like' post.id %}"
-
-          {% is_liked post user as liked %}
-          >
-          {% if liked  %}
-            <img
-              src="{% static 'img/heart_r.png' %}"
-              alt="like icon"
-            />
-          {% else %}
-            <img
-              src="{% static 'img/heart.png' %}"
-              alt="unliked icon"
-            />
-          {% endif %}
+          <a href="{% url 'post-like' post.id %}">
+            {% is_liked post user as liked %}
+            {% if liked %}
+              <img src="{% static 'img/heart_r.png' %}" alt="like icon" />
+            {% else %}
+              <img src="{% static 'img/heart.png' %}" alt="unliked icon" />
+            {% endif %}
           </a>
           <a href="#" aria-label="Comment button">
             <img src="{% static 'img/comment.svg' %}" alt="comment icon" />
@@ -254,16 +295,35 @@
 
         <div class="post-likes" aria-live="polite">{{ post.likes_count }} likes</div>
         <div class="post-caption">{{ post.description|linebreaksbr }}</div>
+        
         <a href="#" class="view-comments">View all comments</a>
-        <input
-          type="text"
-          class="add-comment"
-          placeholder="Add a comment"
-          aria-label="Add a comment"
-        />
+
+        <div class="post-comments" aria-live="polite" aria-relevant="additions removals">
+          {% for comment in post.comments.all %}
+          <div class="comment" id="comment-{{ comment.id }}">
+            <strong>{{ comment.user.username }}</strong>{{ comment.text }}
+          </div>
+          {% empty %}
+          <div class="comment">No comments yet.</div>
+          {% endfor %}
+        </div>
+
+        <form method="POST" action="{% url 'post-list' %}">
+          {% csrf_token %}
+          <input type="hidden" name="post_id" value="{{ post.id }}">
+          <input
+            type="text"
+            name="text"
+            class="add-comment"
+            placeholder="Add a comment"
+            aria-label="Add a comment"
+            required
+          />
+          <button type="submit" class="comment-submit-btn">Post</button>
+        </form>
       </div>
       {% endfor %}
     </div>
-
   </body>
 </html>
+
