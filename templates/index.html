@@ -179,6 +179,7 @@
         text-decoration: underline;
       }
 
+
       .add-comment {
         margin: 0 20px 20px;
         padding: 10px 15px;
@@ -200,6 +201,58 @@
       .add-comment:focus {
         background-color: #333;
       }
+
+      /* Comments container */
+      .post-comments {
+        padding: 0 20px 10px;
+        max-height: 160px;
+        overflow-y: auto;
+        border-top: 1px solid #222;
+        margin-top: 8px;
+        flex-shrink: 0;
+      }
+
+      .post-comments .comment {
+        margin-bottom: 8px;
+        font-size: 13px;
+        color: #ddd;
+      }
+
+      .post-comments .comment strong {
+        color: #0af;
+        margin-right: 6px;
+      }
+
+      /* Scrollbar styling for comments */
+      .post-comments::-webkit-scrollbar {
+        width: 6px;
+      }
+      .post-comments::-webkit-scrollbar-track {
+        background: #121212;
+      }
+      .post-comments::-webkit-scrollbar-thumb {
+        background-color: #0af;
+        border-radius: 3px;
+      }
+
+      /* Button for comment submit */
+      .comment-submit-btn {
+        background-color: #0af;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 20px;
+        color: #fff;
+        cursor: pointer;
+        font-weight: 600;
+        margin: 0 20px 20px;
+        align-self: flex-start;
+        transition: background-color 0.3s ease;
+      }
+
+      .comment-submit-btn:hover {
+        background-color: #08acda;
+      }
+
     </style>
   </head>
   <body>
@@ -255,6 +308,7 @@
           {% endfor %}
         </div>
 
+
         <form method="POST" action="{% url 'post-list' %}">
           {% csrf_token %}
           <input type="hidden" name="post_id" value="{{ post.id }}">
@@ -273,4 +327,3 @@
     </div>
   </body>
 </html>
-

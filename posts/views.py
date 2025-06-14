@@ -22,8 +22,7 @@ class PostListView(LoginRequiredMixin, View):
             comment.user = request.user
             comment.post = post
             comment.save()
-            return redirect("post-list")
-        return redirect("post-list")
+        return redirect(request.META.get('HTTP_REFERER', '/'))
 
 
 class AddpostView(LoginRequiredMixin, View):
@@ -55,4 +54,4 @@ class PostLikeView(LoginRequiredMixin, View):
         else:
             post.likes.create(user=request.user)
 
-        return redirect("post-list")
+        return redirect(request.META.get('HTTP_REFERER', '/'))
