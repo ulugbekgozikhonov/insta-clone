@@ -50,20 +50,30 @@ def logout_view(request):
     logout(request=request)
     return redirect('login')
 
-class ProfileView(LoginRequiredMixin,View):
-    def get(self,request, username):
+class ProfileView(LoginRequiredMixin, View):
+    def get(self, request, username):
         user = User.objects.get(username=username)
         is_following = UserFollowers.objects.filter(
-        user=request.user,
-        follower=user,
-        deleted=False
-    ).exists()
+            user=request.user,
+            follower=user,
+            deleted=False
+        ).exists()
+
+        # Foydalanuvchining postlarini olib, har biriga like status va count qo‘shamiz
+        posts = user.posts.all()
+        for post in posts:
+            post.liked = post.likes.filter(user=request.user, deleted=False).exists()
         
+        likes_count = post.likes.filter(deleted=False).count()
+
         context = {
-        'user': user,
-        'is_following': is_following
-    }
+            'user': user,
+            'is_following': is_following,
+            'posts': posts,
+            'likes_count': likes_count
+        }
         return render(request, 'profile.html', context)
+
 
 class FollowView(LoginRequiredMixin, View):
     def get(self, request, username):

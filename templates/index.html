@@ -1,5 +1,4 @@
-{% load like_tags %}
-{% load static %}
+{% load like_tags %} {% load static %}
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -179,7 +178,6 @@
         text-decoration: underline;
       }
 
-
       .add-comment {
         margin: 0 20px 20px;
         padding: 10px 15px;
@@ -252,7 +250,6 @@
       .comment-submit-btn:hover {
         background-color: #08acda;
       }
-
     </style>
   </head>
   <body>
@@ -272,7 +269,9 @@
         <div class="post-header">
           <img src="{{ post.user.photo.url }}" alt="user avatar image" />
           <div class="username">
-            <a href="{% url 'profile' post.user.username %}">{{ post.user.username }}</a>
+            <a href="{% url 'profile' post.user.username %}"
+              >{{ post.user.username }}</a
+            >
             • {{ post.get_time_since_created }}
           </div>
         </div>
@@ -280,38 +279,60 @@
           <img src="{{ post.content.url }}" alt="Post image" />
         </div>
         <div class="post-actions">
-          <a href="{% url 'post-like' post.id %}">
-            {% is_liked post user as liked %}
-            {% if liked %}
-              <img src="{% static 'img/heart_r.png' %}" alt="like icon" />
+          <a
+            href="javascript:void(0);"
+            class="like-btn"
+            data-post-id="{{ post.id }}"
+            data-liked="{{ post.liked|yesno:'true,false' }}"
+          >
+            {% if post.liked %}
+            <img
+              id="like-icon-{{ post.id }}"
+              src="{% static 'img/heart_r.png' %}"
+              alt="liked"
+            />
             {% else %}
-              <img src="{% static 'img/heart.png' %}" alt="unliked icon" />
+            <img
+              id="like-icon-{{ post.id }}"
+              src="{% static 'img/heart.png' %}"
+              alt="unliked"
+            />
             {% endif %}
           </a>
+          <!-- comment tugmasi -->
           <a href="#" aria-label="Comment button">
             <img src="{% static 'img/comment.svg' %}" alt="comment icon" />
           </a>
         </div>
 
-        <div class="post-likes" aria-live="polite">{{ post.likes_count }} likes</div>
+        <div
+          class="post-likes"
+          id="likes-count-{{ post.id }}"
+          aria-live="polite"
+        >
+          {{ post.likes_count }} likes
+        </div>
         <div class="post-caption">{{ post.description|linebreaksbr }}</div>
-        
+
         <a href="#" class="view-comments">View all comments</a>
 
-        <div class="post-comments" aria-live="polite" aria-relevant="additions removals">
+        <div
+          class="post-comments"
+          id="comments-{{ post.id }}"
+          aria-live="polite"
+          aria-relevant="additions removals"
+        >
           {% for comment in post.comments.all %}
           <div class="comment" id="comment-{{ comment.id }}">
-            <strong>{{ comment.user.username }}</strong>{{ comment.text }}
+            <strong>{{ comment.user.username }}</strong> {{ comment.text }}
           </div>
           {% empty %}
           <div class="comment">No comments yet.</div>
           {% endfor %}
         </div>
 
-
-        <form method="POST" action="{% url 'post-list' %}">
+        <form class="comment-form" data-post-id="{{ post.id }}">
           {% csrf_token %}
-          <input type="hidden" name="post_id" value="{{ post.id }}">
           <input
             type="text"
             name="text"
@@ -325,5 +346,108 @@
       </div>
       {% endfor %}
     </div>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        // ✅ LIKE TUGMASI
+        document.querySelectorAll(".like-btn").forEach((button) => {
+          button.addEventListener("click", function () {
+            const postId = this.dataset.postId;
+            const liked = this.dataset.liked === "true";
+            const icon = document.getElementById(`like-icon-${postId}`);
+            const countDiv = document.getElementById(`likes-count-${postId}`);
+
+            fetch(`/post/${postId}/like/`, {
+              method: "POST",
+              headers: {
+                "X-CSRFToken": getCookie("csrftoken"),
+                "Content-Type": "application/json",
+              },
+              credentials: "same-origin",
+            })
+              .then((response) => response.json())
+              .then((data) => {
+                // Rasmni yangilash
+                if (data.liked) {
+                  icon.src = "{% static 'img/heart_r.png' %}";
+                  button.dataset.liked = "true";
+                } else {
+                  icon.src = "{% static 'img/heart.png' %}";
+                  button.dataset.liked = "false";
+                }
+
+                // Like sonini yangilash
+                countDiv.innerText = `${data.likes_count} likes`;
+              })
+              .catch((error) => console.error("Like error:", error));
+          });
+        });
+
+        // ✅ COMMENT FORM
+        document.querySelectorAll(".comment-form").forEach((form) => {
+          form.addEventListener("submit", function (e) {
+            e.preventDefault();
+
+            const postId = this.dataset.postId;
+            const textInput = this.querySelector('input[name="text"]');
+            const text = textInput.value;
+
+            fetch(`/post/${postId}/comment/`, {
+              method: "POST",
+              headers: {
+                "X-CSRFToken": getCookie("csrftoken"),
+                "Content-Type": "application/json",
+              },
+              credentials: "same-origin",
+              body: JSON.stringify({ text: text }),
+            })
+              .then((res) => res.json())
+              .then((data) => {
+                const commentsDiv = document.getElementById(
+                  `comments-${postId}`
+                );
+
+                // "No comments yet" bo‘lsa, o‘chiramiz
+                const emptyDiv = commentsDiv.querySelector(".comment");
+                if (
+                  emptyDiv &&
+                  emptyDiv.innerText.trim() === "No comments yet."
+                ) {
+                  commentsDiv.removeChild(emptyDiv);
+                }
+
+                // Yangi commentni qo‘shamiz
+                const newComment = document.createElement("div");
+                newComment.classList.add("comment");
+                newComment.id = `comment-${data.id}`;
+                newComment.innerHTML = `<strong>${data.username}</strong> ${data.text}`;
+                commentsDiv.appendChild(newComment);
+
+                // inputni tozalash
+                textInput.value = "";
+              })
+              .catch((error) => console.error("Comment error:", error));
+          });
+        });
+
+        // ✅ CSRF olish funksiyasi
+        function getCookie(name) {
+          let cookieValue = null;
+          if (document.cookie && document.cookie !== "") {
+            const cookies = document.cookie.split(";");
+            for (let i = 0; i < cookies.length; i++) {
+              const cookie = cookies[i].trim();
+              if (cookie.substring(0, name.length + 1) === name + "=") {
+                cookieValue = decodeURIComponent(
+                  cookie.substring(name.length + 1)
+                );
+                break;
+              }
+            }
+          }
+          return cookieValue;
+        }
+      });
+    </script>
   </body>
 </html>

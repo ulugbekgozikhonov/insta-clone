@@ -1,28 +1,52 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import render, redirect
 from django.views import View
-from .models import Post, Comment
+from .models import Post, PostLike, Comment
 from .forms import CommentForm
-
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404
+import json
 
 class PostListView(LoginRequiredMixin, View):
     def get(self, request):
-        posts = Post.objects.exclude(user=request.user).all()
         comment_form = CommentForm()
-        return render(
-            request, "index.html", {"posts": posts, "comment_form": comment_form}
+        user = request.user
+
+        # Foydalanuvchining all likes
+        user_liked_post_ids = set(
+            PostLike.objects.filter(user=user, deleted=False).values_list("post_id", flat=True)
         )
 
-    def post(self, request):
-        comment_form = CommentForm(request.POST)
-        if comment_form.is_valid():
-            post_id = request.POST.get("post_id")
-            post = Post.objects.get(id=post_id)
-            comment = comment_form.save(commit=False)
-            comment.user = request.user
-            comment.post = post
-            comment.save()
-        return redirect(request.META.get('HTTP_REFERER', '/'))
+        # Postlar (faqat boshqa userlar tomonidan yaratilganlar)
+        posts = Post.objects.exclude(user=user).all()
+
+        # Har bir postga liked atributini qo‘shamiz
+        for post in posts:
+            post.liked = post.id in user_liked_post_ids
+
+        return render(request, "index.html", {
+            "posts": posts,
+            "comment_form": comment_form
+        })
+
+
+class PostCommentView(LoginRequiredMixin, View):
+    def post(self, request, post_id):
+        post = get_object_or_404(Post, id=post_id)
+        data = json.loads(request.body)
+        text = data.get('text')
+
+        comment = Comment.objects.create(
+            post=post,
+            user=request.user,
+            text=text
+        )
+
+        return JsonResponse({
+            'id': comment.id,
+            'username': request.user.username,
+            'text': comment.text
+        })
 
 
 class AddpostView(LoginRequiredMixin, View):
@@ -45,13 +69,18 @@ class AddpostView(LoginRequiredMixin, View):
 
 
 class PostLikeView(LoginRequiredMixin, View):
-    def get(self, request, pk):
-        post = Post.objects.get(pk=pk)
+    def post(self, request, post_id):
+        post = get_object_or_404(Post, pk=post_id)
         post_like = post.likes.filter(post=post, user=request.user).first()
+
         if post_like:
             post_like.deleted = not post_like.deleted
             post_like.save()
+            liked = not post_like.deleted
         else:
             post.likes.create(user=request.user)
+            liked = True
 
-        return redirect(request.META.get('HTTP_REFERER', '/'))
+        likes_count = post.likes.filter(deleted=False).count()
+
+        return JsonResponse({'liked': liked, 'likes_count': likes_count})
